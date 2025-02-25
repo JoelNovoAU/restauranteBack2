@@ -39,7 +39,9 @@ app.get('/api/check-db', async (req, res) => {
     res.status(500).json({ message: 'Error al conectar con MongoDB', error });
   }
 });
-
+app.get('/api', (req, res) => {
+  res.json({ message: 'Bienvenido a la API' });
+});
 module.exports = app;
 
 /*
