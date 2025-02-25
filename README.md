@@ -1,1 +1,1 @@
-https://restaurante-back2-two.vercel.app/
+restaurante-back2-two.vercel.app
