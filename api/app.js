@@ -40,7 +40,7 @@ app.get('/api/check-db', async (req, res) => {
   }
 });
 app.get('/api', (req, res) => {
-  res.json({ message: 'Bienvenido a la API' });
+  res.json({ message: 'Bienvenido a la API hola joel hola' });
 });
 module.exports = app;
 
