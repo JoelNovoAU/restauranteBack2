@@ -23,20 +23,24 @@ async function connectToDB() {
     const database = client.db('restaurante');
     collection = database.collection('usuarios');
     console.log("Conectado a MongoDB");
+    
   } catch (err) {
     console.error("Error al conectar a MongoDB:", err);
   }
 }
-
 connectToDB();
+
+// Endpoint de prueba
 app.get('/api/check-db', async (req, res) => {
   try {
-      await mongoose.connection.db.admin().ping();
-      res.json({ message: 'Conexión exitosa con MongoDB Atlas' });
+    const test = await collection.findOne();
+    res.json({ message: 'Conexión exitosa con MongoDB Atlas', test });
   } catch (error) {
-      res.status(500).json({ message: 'Error al conectar con MongoDB', error });
+    res.status(500).json({ message: 'Error al conectar con MongoDB', error });
   }
 });
+
+module.exports = app;
 
 /*
 // Configurar CORS (uso del middleware CORS)
