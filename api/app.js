@@ -2,7 +2,7 @@ const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const cors = require('cors'); // Agrega el módulo CORS
 const app = express();
-//por favor funciona
+//por favor funciona2
 app.use(express.json());
 
 // Conexión a MongoDB
