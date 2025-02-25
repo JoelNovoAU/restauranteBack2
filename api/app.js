@@ -49,6 +49,30 @@ app.get('/api', (req, res) => {
   res.json({ message: 'Bienvenido a la API hola joel hola' });
 });
 module.exports = app;
+//registro
+app.post("/api/register", async (req, res) => {
+  try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+          return res.status(400).json({ success: false, message: "Todos los campos son obligatorios." });
+      }
+
+      // Verificar si el correo ya existe
+      const existingUser = await collection.findOne({ email });
+      if (existingUser) {
+          return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
+      }
+
+      // Guardar el nuevo usuario sin encriptar la contraseña
+      await collection.insertOne({ email, password });
+
+      res.status(201).json({ success: true, message: "Usuario registrado correctamente." });
+  } catch (error) {
+      console.error("Error en el registro:", error);
+      res.status(500).json({ success: false, message: "Error en el servidor." });
+  }
+});
 
 /*
 // Configurar CORS (uso del middleware CORS)
