@@ -6,7 +6,8 @@ const app = express();
 app.use(express.json());
 
 // Conexión a MongoDB
-const uri = "mongodb+srv://angelrp:abc123.@cluster0.76po7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb+srv://angelrp:abc123.@cluster0.76po7.mongodb.net/restaurante?retryWrites=true&w=majority&appName=Cluster0";
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -33,12 +34,17 @@ connectToDB();
 // Endpoint de prueba
 app.get('/api/check-db', async (req, res) => {
   try {
+    if (!client.topology || !client.topology.isConnected()) {
+      await client.connect();
+    }
     const test = await collection.findOne();
     res.json({ message: 'Conexión exitosa con MongoDB Atlas', test });
   } catch (error) {
     res.status(500).json({ message: 'Error al conectar con MongoDB', error });
   }
 });
+
+//para ver si funciona
 app.get('/api', (req, res) => {
   res.json({ message: 'Bienvenido a la API hola joel hola' });
 });
