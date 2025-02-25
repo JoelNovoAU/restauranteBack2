@@ -43,7 +43,6 @@ app.get('/api/check-db', async (req, res) => {
     res.status(500).json({ message: 'Error al conectar con MongoDB', error });
   }
 });
-
 //para ver si funciona
 app.get('/api', (req, res) => {
   res.json({ message: 'Bienvenido a la API hola joel hola' });
@@ -52,6 +51,7 @@ module.exports = app;
 //registro
 app.post("/api/register", async (req, res) => {
   try {
+      console.log(req.body);  // Verifica que los datos lleguen correctamente
       const { email, password } = req.body;
 
       if (!email || !password) {
@@ -69,7 +69,7 @@ app.post("/api/register", async (req, res) => {
 
       res.status(201).json({ success: true, message: "Usuario registrado correctamente." });
   } catch (error) {
-      console.error("Error en el registro:", error);
+      console.error("Error en el registro:", error);  // Asegúrate de ver el error en la consola
       res.status(500).json({ success: false, message: "Error en el servidor." });
   }
 });
