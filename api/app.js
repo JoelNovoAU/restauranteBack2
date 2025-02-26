@@ -98,6 +98,33 @@ app.post("/api/login", async (req, res) => {
       res.status(500).json({ success: false, message: "Error en el servidor." });
   }
 });
+// Endpoint para crear una reserva
+app.post("/api/reservas", async (req, res) => {
+  try {
+      const { nombre, telefono, comensales, fecha, hora } = req.body;
+
+      if (!nombre || !telefono || !comensales || !fecha || !hora) {
+          return res.status(400).json({ success: false, message: "Todos los campos son obligatorios." });
+      }
+
+      // Convertir la fecha a tipo Date para ordenamiento futuro
+      const fechaReserva = new Date(fecha);
+
+      // Insertar en la colección "reservas"
+      await client.db("restaurante").collection("reservas").insertOne({
+          nombre,
+          telefono,
+          comensales: parseInt(comensales),
+          fecha: fechaReserva,
+          hora
+      });
+
+      res.status(201).json({ success: true, message: "Reserva creada exitosamente." });
+  } catch (error) {
+      console.error("Error al crear la reserva:", error);
+      res.status(500).json({ success: false, message: "Error en el servidor." });
+  }
+});
 
 module.exports = app;
 
