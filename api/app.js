@@ -126,7 +126,15 @@ app.post("/api/reservas", async (req, res) => {
       res.status(500).json({ success: false, message: "Error en el servidor." });
   }
 });
-
+app.get("/api/reservas", async (req, res) => {
+  try {
+    const reservas = await client.db("restaurante").collection("reservas").find().toArray();
+    res.status(200).json({ success: true, reservas });
+  } catch (error) {
+    console.error("Error al obtener reservas:", error);
+    res.status(500).json({ success: false, message: "Error al obtener las reservas." });
+  }
+});
 module.exports = app;
 
 /*
