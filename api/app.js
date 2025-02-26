@@ -135,6 +135,34 @@ app.get("/api/reservas", async (req, res) => {
     res.status(500).json({ success: false, message: "Error al obtener las reservas." });
   }
 });
+
+const { ObjectId } = require("mongodb"); // Importar ObjectId para manejar IDs de MongoDB
+
+// Eliminar una reserva por ID
+app.delete("/api/reservas/:id", async (req, res) => {
+  try {
+    const reservaId = req.params.id;
+
+    // Verificar que el ID es válido
+    if (!ObjectId.isValid(reservaId)) {
+      return res.status(400).json({ success: false, message: "ID de reserva no válido." });
+    }
+
+    // Eliminar la reserva de la base de datos
+    const resultado = await client.db("restaurante").collection("reservas").deleteOne({ _id: new ObjectId(reservaId) });
+
+    if (resultado.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Reserva no encontrada." });
+    }
+
+    res.json({ success: true, message: "Reserva eliminada correctamente." });
+  } catch (error) {
+    console.error("Error al eliminar la reserva:", error);
+    res.status(500).json({ success: false, message: "Error en el servidor." });
+  }
+});
+
+
 module.exports = app;
 
 /*
