@@ -174,10 +174,18 @@ app.get('/api/productos', async (req, res) => {
   }
 });
 
-// Almacenar la cesta global en una variable en memoria
-let cestaGlobal = [];
+app.get('/api/productos', async (req, res) => {
+  try {
+    const productos = await client.db("restaurante").collection("productos").find().toArray();
+    res.status(200).json({ success: true, productos });
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    res.status(500).json({ success: false, message: "Error al obtener los productos." });
+  }
+});
 
-// Agregar producto a la cesta
+// Agregar un producto a la cesta global
+let cestaGlobal = [];
 app.post("/api/cesta", async (req, res) => {
   try {
     const { productoId, cantidad } = req.body;
@@ -186,21 +194,17 @@ app.post("/api/cesta", async (req, res) => {
       return res.status(400).json({ success: false, message: "Faltan datos en la solicitud." });
     }
 
-    // Buscar el producto en la base de datos
     const producto = await client.db("restaurante").collection("productos").findOne({ _id: new ObjectId(productoId) });
 
     if (!producto) {
       return res.status(404).json({ success: false, message: "Producto no encontrado." });
     }
 
-    // Buscar si el producto ya está en la cesta global
     const productoEnCesta = cestaGlobal.find(item => item.productoId.toString() === productoId);
 
     if (productoEnCesta) {
-      // Si el producto ya está en la cesta, aumentar la cantidad
       productoEnCesta.cantidad += cantidad;
     } else {
-      // Si no está en la cesta, agregarlo
       cestaGlobal.push({ productoId: new ObjectId(productoId), cantidad, precio: producto.precio });
     }
 
@@ -211,14 +215,13 @@ app.post("/api/cesta", async (req, res) => {
   }
 });
 
-// Ver la cesta global (sin asociarla a un usuario)
+// Ver la cesta global
 app.get("/api/cesta", async (req, res) => {
   try {
     if (cestaGlobal.length === 0) {
       return res.status(404).json({ success: false, message: "Cesta vacía." });
     }
 
-    // Llenar los detalles de los productos (nombre, precio, etc.)
     const productos = await Promise.all(cestaGlobal.map(async (item) => {
       const producto = await client.db("restaurante").collection("productos").findOne({ _id: item.productoId });
       return { ...producto, cantidad: item.cantidad };
@@ -231,19 +234,17 @@ app.get("/api/cesta", async (req, res) => {
   }
 });
 
-// Eliminar producto de la cesta global
+// Eliminar producto de la cesta
 app.delete("/api/cesta/:productoId", async (req, res) => {
   try {
     const { productoId } = req.params;
 
-    // Buscar si el producto está en la cesta global
     const productoIndex = cestaGlobal.findIndex(item => item.productoId.toString() === productoId);
 
     if (productoIndex === -1) {
       return res.status(404).json({ success: false, message: "Producto no encontrado en la cesta." });
     }
 
-    // Eliminar el producto de la cesta global
     cestaGlobal.splice(productoIndex, 1);
 
     res.status(200).json({ success: true, message: "Producto eliminado de la cesta." });
