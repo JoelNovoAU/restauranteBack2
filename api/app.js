@@ -1,8 +1,11 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const cors = require('cors'); // Agrega el módulo CORS
+const cors = require('cors'); // Importa CORS
 const app = express();
-//por favor funciona2
+
+// Habilita CORS para todas las solicitudes
+app.use(cors());
+
 app.use(express.json());
 
 // Conexión a MongoDB
@@ -24,7 +27,6 @@ async function connectToDB() {
     const database = client.db('restaurante');
     collection = database.collection('usuarios');
     console.log("Conectado a MongoDB");
-    
   } catch (err) {
     console.error("Error al conectar a MongoDB:", err);
   }
@@ -43,36 +45,39 @@ app.get('/api/check-db', async (req, res) => {
     res.status(500).json({ message: 'Error al conectar con MongoDB', error });
   }
 });
-//para ver si funciona
+
+// Para ver si funciona
 app.get('/api', (req, res) => {
   res.json({ message: 'Bienvenido a la API hola joel hola' });
 });
-module.exports = app;
-//registro
+
+// Registro de usuario
 app.post("/api/register", async (req, res) => {
   try {
-      console.log(req.body);  // Verifica que los datos lleguen correctamente
-      const { email, password } = req.body;
+    console.log(req.body);  // Verifica que los datos lleguen correctamente
+    const { email, password } = req.body;
 
-      if (!email || !password) {
-          return res.status(400).json({ success: false, message: "Todos los campos son obligatorios." });
-      }
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Todos los campos son obligatorios." });
+    }
 
-      // Verificar si el correo ya existe
-      const existingUser = await collection.findOne({ email });
-      if (existingUser) {
-          return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
-      }
+    // Verificar si el correo ya existe
+    const existingUser = await collection.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
+    }
 
-      // Guardar el nuevo usuario sin encriptar la contraseña
-      await collection.insertOne({ email, password });
+    // Guardar el nuevo usuario sin encriptar la contraseña
+    await collection.insertOne({ email, password });
 
-      res.status(201).json({ success: true, message: "Usuario registrado correctamente." });
+    res.status(201).json({ success: true, message: "Usuario registrado correctamente." });
   } catch (error) {
-      console.error("Error en el registro:", error);  // Asegúrate de ver el error en la consola
-      res.status(500).json({ success: false, message: "Error en el servidor." });
+    console.error("Error en el registro:", error);
+    res.status(500).json({ success: false, message: "Error en el servidor." });
   }
 });
+
+module.exports = app;
 
 /*
 // Configurar CORS (uso del middleware CORS)
