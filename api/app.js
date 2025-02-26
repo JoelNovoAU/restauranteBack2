@@ -76,6 +76,28 @@ app.post("/api/register", async (req, res) => {
     res.status(500).json({ success: false, message: "Error en el servidor." });
   }
 });
+//login
+app.post("/api/login", async (req, res) => {
+  try {
+      console.log("Datos recibidos en /api/login:", req.body);
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+          return res.status(400).json({ success: false, message: "Todos los campos son obligatorios." });
+      }
+
+      const user = await collection.findOne({ email, password });
+
+      if (!user) {
+          return res.status(401).json({ success: false, message: "Correo o contraseña incorrectos." });
+      }
+
+      res.status(200).json({ success: true, message: "Inicio de sesión exitoso." });
+  } catch (error) {
+      console.error("🔥 Error en el login:", error);
+      res.status(500).json({ success: false, message: "Error en el servidor." });
+  }
+});
 
 module.exports = app;
 
