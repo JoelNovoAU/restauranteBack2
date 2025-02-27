@@ -318,8 +318,38 @@ app.get("/api/pedidos", async (req, res) => {
     console.error("Error al obtener los pedidos:", error);
     res.status(500).json({ success: false, message: "Hubo un error al obtener los pedidos." });
   }
+  
 });
 
+// Ruta para eliminar un pedido por su ID
+app.delete("/api/pedidos/:id", async (req, res) => {
+  try {
+    const { id } = req.params; // Obtener el ID del pedido desde los parámetros de la URL
+
+    // Validar que el ID del pedido sea válido
+    if (!id) {
+      return res.status(400).json({ success: false, message: "ID de pedido no proporcionado." });
+    }
+
+    // Conectar a la base de datos
+    const db = client.db("restaurante");
+    const pedidosCollection = db.collection("pedidos");
+
+    // Eliminar el pedido con el ID proporcionado
+    const result = await pedidosCollection.deleteOne({ _id: new ObjectId(id) });
+
+    // Verificar si el pedido fue encontrado y eliminado
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "No se encontró el pedido." });
+    }
+
+    res.status(200).json({ success: true, message: "Pedido eliminado correctamente." });
+
+  } catch (error) {
+    console.error("Error al eliminar el pedido:", error);
+    res.status(500).json({ success: false, message: "Hubo un error al eliminar el pedido." });
+  }
+});
 
 module.exports = app;
 
