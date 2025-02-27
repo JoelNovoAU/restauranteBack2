@@ -243,6 +243,7 @@ app.delete("/api/cesta/:productoId", async (req, res) => {
   }
 });
 
+// Ruta para obtener los productos de la cesta
 app.get("/api/cesta", async (req, res) => {
   try {
     const db = client.db("restaurante");
@@ -297,59 +298,7 @@ app.post("/api/pedidos", async (req, res) => {
   }
 });
 
-app.get("/api/pedidos", async (req, res) => {
-  try {
-    // Obtener todos los pedidos con los productos asociados
-    const pedidos = await client.db("restaurante").collection("pedidos").find().toArray();
-
-    // Si no hay pedidos, devolver un mensaje
-    if (!pedidos || pedidos.length === 0) {
-      return res.status(404).json({ success: false, message: "No hay pedidos." });
-    }
-
-    // Devolver los pedidos con los productos asociados
-    res.status(200).json({
-      success: true,
-      pedidos: pedidos // Devuelves la lista de pedidos con productos
-    });
-  } catch (error) {
-    console.error("Error al obtener los pedidos:", error);
-    res.status(500).json({ success: false, message: "Hubo un error al obtener los pedidos." });
-  }
-});
-// Función para aceptar un pedido
-$(".contenedorPedidos").on("click", ".btn-success", function () {
-  const tarjeta = $(this).closest(".card"); // Obtener la tarjeta padre
-  const pedidoId = tarjeta.attr("data-id"); // Obtener el ID del pedido
-
-  if (!pedidoId) {
-      alert("No se pudo obtener el ID del pedido.");
-      return;
-  }
-
-  // Confirmación antes de aceptar
-  if (!confirm("¿Estás seguro de que quieres aceptar este pedido?")) {
-      return;
-  }
-
-  // Hacer petición PATCH al backend para aceptar el pedido
-  $.ajax({
-      url: `https://restaurante-back2-two.vercel.app/api/pedidos/aceptar/${pedidoId}`, // URL para aceptar el pedido
-      method: "PATCH",
-      success: function (response) {
-          if (response.success) {
-              alert("Pedido aceptado correctamente.");
-              obtenerPedidos(); // Actualizar la lista de pedidos
-          } else {
-              alert(response.message);
-          }
-      },
-      error: function (error) {
-          console.error("Error al aceptar el pedido:", error);
-          alert("Hubo un problema al aceptar el pedido.");
-      }
-  });
-});
+// Ruta para obtener todos los pedidos
 app.get("/api/pedidos", async (req, res) => {
   try {
     // Obtener todos los pedidos con los productos asociados
