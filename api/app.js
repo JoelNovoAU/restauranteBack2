@@ -297,74 +297,76 @@ app.post("/api/pedidos", async (req, res) => {
   }
 });
 
-module.exports = app;
+// Ruta para cancelar un pedido
+app.patch("/api/pedidos/cancelar/:pedidoId", async (req, res) => {
+  try {
+    const { pedidoId } = req.params;
 
-/*
-// Configurar CORS (uso del middleware CORS)
-app.use(cors({
-  origin: 'https://frontapi-six.vercel.app', // Aquí pones el dominio de tu frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-// Rutas
-app.get('/api', (req, res) => {
-  res.json({ message: 'Bienvenido a la API' });
-});
-// Obtener todos los usuarios
-app.get('/api/usuarios', async (req, res) => {
-  if (!collection) return res.status(500).json({ error: "Base de datos no conectada" });
-  try {
-    const usuarios = await collection.find().toArray();
-    res.json(usuarios);
-  } catch (err) {
-    res.status(500).json({ error: "Error al obtener usuarios" });
+    // Verificar que el ID del pedido es válido
+    if (!ObjectId.isValid(pedidoId)) {
+      return res.status(400).json({ success: false, message: "ID de pedido no válido." });
+    }
+
+    // Buscar y actualizar el estado del pedido
+    const pedido = await client.db("restaurante").collection("pedidos").findOne({ _id: new ObjectId(pedidoId) });
+
+    if (!pedido) {
+      return res.status(404).json({ success: false, message: "Pedido no encontrado." });
+    }
+
+    if (pedido.estado === "cancelado") {
+      return res.status(400).json({ success: false, message: "El pedido ya está cancelado." });
+    }
+
+    // Actualizar el estado del pedido a "cancelado"
+    await client.db("restaurante").collection("pedidos").updateOne(
+      { _id: new ObjectId(pedidoId) },
+      { $set: { estado: "cancelado" } }
+    );
+
+    res.status(200).json({ success: true, message: "Pedido cancelado correctamente." });
+  } catch (error) {
+    console.error("Error al cancelar el pedido:", error);
+    res.status(500).json({ success: false, message: "Hubo un error al cancelar el pedido." });
   }
 });
-// Obtener el primer usuario
-app.get('/api/usuarios1', async (req, res) => {
-  if (!collection) return res.status(500).json({ error: "Base de datos no conectada" });
+
+// Ruta para aceptar un pedido
+app.patch("/api/pedidos/aceptar/:pedidoId", async (req, res) => {
   try {
-    const primerUsuario = await collection.findOne(); // Obtiene el primer documento
-    res.json(primerUsuario);
-  } catch (err) {
-    res.status(500).json({ error: "Error al obtener el usuario" });
+    const { pedidoId } = req.params;
+
+    // Verificar que el ID del pedido es válido
+    if (!ObjectId.isValid(pedidoId)) {
+      return res.status(400).json({ success: false, message: "ID de pedido no válido." });
+    }
+
+    // Buscar y actualizar el estado del pedido
+    const pedido = await client.db("restaurante").collection("pedidos").findOne({ _id: new ObjectId(pedidoId) });
+
+    if (!pedido) {
+      return res.status(404).json({ success: false, message: "Pedido no encontrado." });
+    }
+
+    if (pedido.estado === "aceptado") {
+      return res.status(400).json({ success: false, message: "El pedido ya está aceptado." });
+    }
+
+    // Actualizar el estado del pedido a "aceptado"
+    await client.db("restaurante").collection("pedidos").updateOne(
+      { _id: new ObjectId(pedidoId) },
+      { $set: { estado: "aceptado" } }
+    );
+
+    res.status(200).json({ success: true, message: "Pedido aceptado correctamente." });
+  } catch (error) {
+    console.error("Error al aceptar el pedido:", error);
+    res.status(500).json({ success: false, message: "Hubo un error al aceptar el pedido." });
   }
 });
-// Obtener usuario por ID
-app.get('/api/usuarios/:id', async (req, res) => {
-  if (!collection) return res.status(500).json({ error: "Base de datos no conectada" });
-  try {
-    const { id } = req.params;
-    const usuario = await collection.findOne({ id: parseInt(id) });
-    if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
-    res.json(usuario);
-  } catch (err) {
-    res.status(500).json({ error: "Error al obtener usuario" });
-  }
-});
-// Crear un nuevo usuario
-app.post('/api/crear', async (req, res) => {
-  if (!collection) return res.status(500).json({ error: "Base de datos no conectada" });
-  try {
-    const { nombre, apellido } = req.body;
-    const nuevoUsuario = { nombre, apellido };
-    await collection.insertOne(nuevoUsuario);
-    res.status(201).json(nuevoUsuario);
-  } catch (err) {
-    res.status(500).json({ error: "Error al crear usuario" });
-  }
-});
-// Ruta para manejar errores 404
-app.use((req, res) => {
-  res.status(404).json({ error: "Ruta no encontrada" });
-});
-// Manejo de errores generales
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Error interno del servidor" });
-});
+
+
 module.exports = app;
-*/
 
 
 
