@@ -297,6 +297,8 @@ app.post("/api/pedidos", async (req, res) => {
   }
 });
 
+const { ObjectId } = require("mongodb");
+
 app.delete("/api/pedidos/cancelar/:pedidoId", async (req, res) => {
   try {
     const { pedidoId } = req.params;
@@ -328,10 +330,11 @@ app.get("/api/pedidos", async (req, res) => {
   try {
     const pedidos = await db.collection("pedidos").find({}).toArray();
 
-    // Verifica la estructura de los pedidos
-    pedidos.forEach(pedido => {
-      console.log(pedido.productos); // Aquí puedes ver si los productos están dentro del pedido
-    });
+    // Verificar que los pedidos han sido encontrados
+    if (!pedidos || pedidos.length === 0) {
+      console.log("No se encontraron pedidos");
+      return res.status(404).json({ success: false, message: "No se encontraron pedidos." });
+    }
 
     res.status(200).json({ success: true, pedidos });
   } catch (error) {
