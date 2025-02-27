@@ -327,12 +327,19 @@ app.delete("/api/pedidos/cancelar/:pedidoId", async (req, res) => {
 app.get("/api/pedidos", async (req, res) => {
   try {
     const pedidos = await db.collection("pedidos").find({}).toArray();
+
+    // Verifica la estructura de los pedidos
+    pedidos.forEach(pedido => {
+      console.log(pedido.productos); // Aquí puedes ver si los productos están dentro del pedido
+    });
+
     res.status(200).json({ success: true, pedidos });
   } catch (error) {
     console.error("Error al obtener los pedidos:", error);
     res.status(500).json({ success: false, message: "Hubo un error al obtener los pedidos." });
   }
 });
+
 
 // Ruta para aceptar un pedido
 app.patch("/api/pedidos/aceptar/:pedidoId", async (req, res) => {
