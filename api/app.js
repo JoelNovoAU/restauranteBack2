@@ -243,6 +243,20 @@ app.delete("/api/cesta/:productoId", async (req, res) => {
   }
 });
 
+app.get("/api/cesta", async (req, res) => {
+  try {
+    const db = client.db("restaurante");
+    const cestaCollection = db.collection("productos");
+
+    // Obtener los productos de la cesta
+    const productos = await cestaCollection.find().toArray();
+    res.status(200).json({ success: true, cesta: productos });
+
+  } catch (error) {
+    console.error("Error al obtener la cesta:", error);
+    res.status(500).json({ success: false, message: "Error al obtener la cesta." });
+  }
+});
 
 module.exports = app;
 
