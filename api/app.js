@@ -182,22 +182,23 @@ app.get("/api/cesta", (req, res) => {
 
 // Agregar producto a la cesta
 app.post("/api/cesta", (req, res) => {
-    try {
-        const { productoId, nombre, precio, cantidad } = req.body;
-        const existente = cestaGlobal.find(item => item.productoId == productoId);
+  try {
+      const { productoId, nombre, precio, imagen, cantidad } = req.body; // 📌 Se incluye la imagen
+      const existente = cestaGlobal.find(item => item.productoId == productoId);
 
-        if (existente) {
-            existente.cantidad += cantidad;
-        } else {
-            cestaGlobal.push({ productoId, nombre, precio, cantidad });
-        }
+      if (existente) {
+          existente.cantidad += cantidad;
+      } else {
+          cestaGlobal.push({ productoId, nombre, precio, imagen, cantidad }); // 📌 Se guarda la imagen
+      }
 
-        res.status(201).json({ success: true, message: "Producto agregado a la cesta.", cesta: cestaGlobal });
-    } catch (error) {
-        console.error("Error al agregar producto a la cesta:", error);
-        res.status(500).json({ success: false, message: "Error al agregar producto a la cesta." });
-    }
+      res.status(201).json({ success: true, message: "Producto agregado a la cesta.", cesta: cestaGlobal });
+  } catch (error) {
+      console.error("Error al agregar producto a la cesta:", error);
+      res.status(500).json({ success: false, message: "Error al agregar producto a la cesta." });
+  }
 });
+
 
 // Eliminar producto de la cesta
 app.delete("/api/cesta/:productoId", (req, res) => {
