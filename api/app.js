@@ -190,7 +190,7 @@ app.post("/api/cesta", async (req, res) => {
     const { productoId, nombre, precio, imagen, cantidad } = req.body;
 
     const db = client.db("restaurante");
-    const cestaCollection = db.collection("cesta");
+    const cestaCollection = db.collection("productos");
 
     // Verificar si el producto ya está en la cesta
     const existente = await cestaCollection.findOne({ productoId });
@@ -227,7 +227,7 @@ app.delete("/api/cesta/:productoId", async (req, res) => {
   try {
     const { productoId } = req.params;
     const db = client.db("restaurante");
-    const cestaCollection = db.collection("cesta");
+    const cestaCollection = db.collection("productos");
 
     const resultado = await cestaCollection.deleteOne({ productoId });
 
