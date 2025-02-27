@@ -167,56 +167,80 @@ app.delete("/api/reservas/:id", async (req, res) => {
 
 let cestaGlobal = []; // Arreglo que almacena los productos de la cesta
 
-// Obtener los productos de la cesta
-app.get("/api/cesta", (req, res) => {
-    try {
-        if (cestaGlobal.length === 0) {
-            return res.status(200).json({ success: true, cesta: [] });
-        }
-        res.status(200).json({ success: true, cesta: cestaGlobal });
-    } catch (error) {
-        console.error("Error al obtener la cesta:", error);
-        res.status(500).json({ success: false, message: "Error al obtener la cesta." });
-    }
-});
-
-// Agregar producto a la cesta
-app.post("/api/cesta", (req, res) => {
+// Obtener los productos de la cesta desde la base de datos
+app.get("/api/cesta", async (req, res) => {
   try {
-      const { productoId, nombre, precio, imagen, cantidad } = req.body; // 📌 Se incluye la imagen
-      const existente = cestaGlobal.find(item => item.productoId == productoId);
+    const db = client.db("restaurante");
+    const cestaCollection = db.collection("productos");
 
-      if (existente) {
-          existente.cantidad += cantidad;
-      } else {
-          cestaGlobal.push({ productoId, nombre, precio, imagen, cantidad }); // 📌 Se guarda la imagen
-      }
+    const productos = await cestaCollection.find().toArray();
+    res.status(200).json({ success: true, cesta: productos });
 
-      res.status(201).json({ success: true, message: "Producto agregado a la cesta.", cesta: cestaGlobal });
   } catch (error) {
-      console.error("Error al agregar producto a la cesta:", error);
-      res.status(500).json({ success: false, message: "Error al agregar producto a la cesta." });
+    console.error("Error al obtener la cesta:", error);
+    res.status(500).json({ success: false, message: "Error al obtener la cesta." });
   }
 });
 
 
-// Eliminar producto de la cesta
-app.delete("/api/cesta/:productoId", (req, res) => {
-    try {
-        const { productoId } = req.params;
+// Agregar producto a la cesta
+// Agregar producto a la cesta y guardarlo en la base de datos
+app.post("/api/cesta", async (req, res) => {
+  try {
+    const { productoId, nombre, precio, imagen, cantidad } = req.body;
 
-        const productoIndex = cestaGlobal.findIndex(item => item.productoId == productoId);
-        if (productoIndex === -1) {
-            return res.status(404).json({ success: false, message: "Producto no encontrado en la cesta." });
-        }
+    const db = client.db("restaurante");
+    const cestaCollection = db.collection("cesta");
 
-        cestaGlobal.splice(productoIndex, 1);
+    // Verificar si el producto ya está en la cesta
+    const existente = await cestaCollection.findOne({ productoId });
 
-        res.status(200).json({ success: true, message: "Producto eliminado de la cesta.", cesta: cestaGlobal });
-    } catch (error) {
-        console.error("Error al eliminar producto de la cesta:", error);
-        res.status(500).json({ success: false, message: "Error al eliminar producto de la cesta." });
+    if (existente) {
+      // Si ya existe, aumentar la cantidad
+      await cestaCollection.updateOne(
+        { productoId },
+        { $inc: { cantidad: cantidad } }
+      );
+    } else {
+      // Si no existe, agregarlo
+      await cestaCollection.insertOne({
+        productoId,
+        nombre,
+        precio,
+        imagen,
+        cantidad
+      });
     }
+
+    res.status(201).json({ success: true, message: "Producto agregado a la cesta." });
+
+  } catch (error) {
+    console.error("Error al agregar producto a la cesta:", error);
+    res.status(500).json({ success: false, message: "Error al agregar producto a la cesta." });
+  }
+});
+
+
+
+// Eliminar un producto de la cesta en la base de datos
+app.delete("/api/cesta/:productoId", async (req, res) => {
+  try {
+    const { productoId } = req.params;
+    const db = client.db("restaurante");
+    const cestaCollection = db.collection("cesta");
+
+    const resultado = await cestaCollection.deleteOne({ productoId });
+
+    if (resultado.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: "Producto no encontrado en la cesta." });
+    }
+
+    res.status(200).json({ success: true, message: "Producto eliminado de la cesta." });
+
+  } catch (error) {
+    console.error("Error al eliminar producto de la cesta:", error);
+    res.status(500).json({ success: false, message: "Error al eliminar producto de la cesta." });
+  }
 });
 
 
