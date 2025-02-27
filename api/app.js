@@ -297,8 +297,7 @@ app.post("/api/pedidos", async (req, res) => {
   }
 });
 
-// Ruta para cancelar un pedido
-app.patch("/api/pedidos/cancelar/:pedidoId", async (req, res) => {
+app.delete("/api/pedidos/cancelar/:pedidoId", async (req, res) => {
   try {
     const { pedidoId } = req.params;
 
@@ -307,27 +306,31 @@ app.patch("/api/pedidos/cancelar/:pedidoId", async (req, res) => {
       return res.status(400).json({ success: false, message: "ID de pedido no válido." });
     }
 
-    // Buscar y actualizar el estado del pedido
-    const pedido = await client.db("restaurante").collection("pedidos").findOne({ _id: new ObjectId(pedidoId) });
+    // Buscar el pedido en la base de datos
+    const pedido = await db.collection("pedidos").findOne({ _id: new ObjectId(pedidoId) });
 
     if (!pedido) {
       return res.status(404).json({ success: false, message: "Pedido no encontrado." });
     }
 
-    if (pedido.estado === "cancelado") {
-      return res.status(400).json({ success: false, message: "El pedido ya está cancelado." });
-    }
-
-    // Actualizar el estado del pedido a "cancelado"
-    await client.db("restaurante").collection("pedidos").updateOne(
-      { _id: new ObjectId(pedidoId) },
-      { $set: { estado: "cancelado" } }
-    );
+    // Eliminar el pedido de la base de datos
+    await db.collection("pedidos").deleteOne({ _id: new ObjectId(pedidoId) });
 
     res.status(200).json({ success: true, message: "Pedido cancelado correctamente." });
   } catch (error) {
     console.error("Error al cancelar el pedido:", error);
     res.status(500).json({ success: false, message: "Hubo un error al cancelar el pedido." });
+  }
+});
+
+// Ruta para obtener todos los pedidos
+app.get("/api/pedidos", async (req, res) => {
+  try {
+    const pedidos = await db.collection("pedidos").find({}).toArray();
+    res.status(200).json({ success: true, pedidos });
+  } catch (error) {
+    console.error("Error al obtener los pedidos:", error);
+    res.status(500).json({ success: false, message: "Hubo un error al obtener los pedidos." });
   }
 });
 
@@ -341,23 +344,14 @@ app.patch("/api/pedidos/aceptar/:pedidoId", async (req, res) => {
       return res.status(400).json({ success: false, message: "ID de pedido no válido." });
     }
 
-    // Buscar y actualizar el estado del pedido
-    const pedido = await client.db("restaurante").collection("pedidos").findOne({ _id: new ObjectId(pedidoId) });
+    // Buscar el pedido en la base de datos
+    const pedido = await db.collection("pedidos").findOne({ _id: new ObjectId(pedidoId) });
 
     if (!pedido) {
       return res.status(404).json({ success: false, message: "Pedido no encontrado." });
     }
 
-    if (pedido.estado === "aceptado") {
-      return res.status(400).json({ success: false, message: "El pedido ya está aceptado." });
-    }
-
-    // Actualizar el estado del pedido a "aceptado"
-    await client.db("restaurante").collection("pedidos").updateOne(
-      { _id: new ObjectId(pedidoId) },
-      { $set: { estado: "aceptado" } }
-    );
-
+    // Si no es necesario actualizar el estado, solo respondemos con un éxito
     res.status(200).json({ success: true, message: "Pedido aceptado correctamente." });
   } catch (error) {
     console.error("Error al aceptar el pedido:", error);
