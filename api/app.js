@@ -258,6 +258,45 @@ app.get("/api/cesta", async (req, res) => {
   }
 });
 
+// Ruta para procesar el pedido y almacenarlo en la base de datos
+app.post("/api/pedidos", async (req, res) => {
+  try {
+    // Obtener los datos del pedido
+    const { cliente, pago, productos, total } = req.body;
+
+    // Validar los datos recibidos
+    if (!cliente || !pago || !productos || !total) {
+      return res.status(400).json({ success: false, message: "Faltan datos para procesar el pedido." });
+    }
+
+    // Conectar a la base de datos
+    const db = client.db("restaurante");
+    const pedidosCollection = db.collection("pedidos");
+
+    // Crear el nuevo pedido
+    const nuevoPedido = {
+      cliente,
+      pago,
+      productos,
+      total,
+      fecha: new Date(),
+    };
+
+    // Guardar el pedido en la base de datos
+    const result = await pedidosCollection.insertOne(nuevoPedido);
+
+    // Limpiar la cesta después de realizar el pedido
+    const cestaCollection = db.collection("productos");
+    await cestaCollection.deleteMany({}); // Eliminar todos los productos de la cesta
+
+    res.status(201).json({ success: true, message: "Pedido realizado con éxito.", pedidoId: result.insertedId });
+
+  } catch (error) {
+    console.error("Error al procesar el pedido:", error);
+    res.status(500).json({ success: false, message: "Hubo un error al procesar el pedido." });
+  }
+});
+
 module.exports = app;
 
 /*
