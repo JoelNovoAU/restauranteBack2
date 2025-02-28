@@ -68,7 +68,7 @@ app.post("/api/register", async (req, res) => {
       return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
     }
 
-    // Guardar el nuevo usuario sin encriptar la contraseña
+    // Guardar el nuevo usuario 
     await collection.insertOne({ email, password });
 
     res.status(201).json({ success: true, message: "Usuario registrado correctamente." });
@@ -99,7 +99,7 @@ app.post("/api/login", async (req, res) => {
       res.status(500).json({ success: false, message: "Error en el servidor." });
   }
 });
-// Endpoint para crear una reserva
+//cerar reserva
 app.post("/api/reservas", async (req, res) => {
   try {
       const { nombre, telefono, comensales, fecha, hora } = req.body;
@@ -108,10 +108,8 @@ app.post("/api/reservas", async (req, res) => {
           return res.status(400).json({ success: false, message: "Todos los campos son obligatorios." });
       }
 
-      // Convertir la fecha a tipo Date para ordenamiento futuro
       const fechaReserva = new Date(fecha);
 
-      // Insertar en la colección "reservas"
       await client.db("restaurante").collection("reservas").insertOne({
           nombre,
           telefono,
@@ -138,7 +136,7 @@ app.get("/api/reservas", async (req, res) => {
 
 const { ObjectId } = require("mongodb"); // Importar ObjectId para manejar IDs de MongoDB
 
-// Eliminar una reserva por ID
+// Eliminar reservaa
 app.delete("/api/reservas/:id", async (req, res) => {
   try {
     const reservaId = req.params.id;
@@ -165,9 +163,9 @@ app.delete("/api/reservas/:id", async (req, res) => {
 
 
 
-let cestaGlobal = []; // Arreglo que almacena los productos de la cesta
+let cestaGlobal = []; 
 
-// Obtener los productos de la cesta desde la base de datos
+// Obtener los productos de la cesta 
 app.get("/api/cesta", async (req, res) => {
   try {
     const db = client.db("restaurante");
@@ -183,7 +181,6 @@ app.get("/api/cesta", async (req, res) => {
 });
 
 
-// Agregar producto a la cesta
 // Agregar producto a la cesta y guardarlo en la base de datos
 app.post("/api/cesta", async (req, res) => {
   try {
@@ -192,17 +189,16 @@ app.post("/api/cesta", async (req, res) => {
     const db = client.db("restaurante");
     const cestaCollection = db.collection("productos");
 
-    // Verificar si el producto ya está en la cesta
     const existente = await cestaCollection.findOne({ productoId });
 
     if (existente) {
-      // Si ya existe, aumentar la cantidad
+
       await cestaCollection.updateOne(
         { productoId },
         { $inc: { cantidad: cantidad } }
       );
     } else {
-      // Si no existe, agregarlo
+
       await cestaCollection.insertOne({
         productoId,
         nombre,
@@ -243,13 +239,12 @@ app.delete("/api/cesta/:productoId", async (req, res) => {
   }
 });
 
-// Ruta para obtener los productos de la cesta
+//obtener los productos de la cesta
 app.get("/api/cesta", async (req, res) => {
   try {
     const db = client.db("restaurante");
     const cestaCollection = db.collection("productos");
 
-    // Obtener los productos de la cesta
     const productos = await cestaCollection.find().toArray();
     res.status(200).json({ success: true, cesta: productos });
 
@@ -259,18 +254,15 @@ app.get("/api/cesta", async (req, res) => {
   }
 });
 
-// Ruta para procesar el pedido y almacenarlo en la base de datos
+// procesar el pedido y almacenarlo en la base de datos
 app.post("/api/pedidos", async (req, res) => {
   try {
-    // Obtener los datos del pedido
     const { cliente, pago, productos, total } = req.body;
 
-    // Validar los datos recibidos
     if (!cliente || !pago || !productos || !total) {
       return res.status(400).json({ success: false, message: "Faltan datos para procesar el pedido." });
     }
 
-    // Conectar a la base de datos
     const db = client.db("restaurante");
     const pedidosCollection = db.collection("pedidos");
 
@@ -286,9 +278,9 @@ app.post("/api/pedidos", async (req, res) => {
     // Guardar el pedido en la base de datos
     const result = await pedidosCollection.insertOne(nuevoPedido);
 
-    // Limpiar la cesta después de realizar el pedido
+    //eliminar la cesta al pagar
     const cestaCollection = db.collection("productos");
-    await cestaCollection.deleteMany({}); // Eliminar todos los productos de la cesta
+    await cestaCollection.deleteMany({}); 
 
     res.status(201).json({ success: true, message: "Pedido realizado con éxito.", pedidoId: result.insertedId });
 
@@ -298,13 +290,12 @@ app.post("/api/pedidos", async (req, res) => {
   }
 });
 
-// Ruta para obtener todos los pedidos
+// obtener todos los pedidos
 app.get("/api/pedidos", async (req, res) => {
   try {
-    // Obtener todos los pedidos con los productos asociados
     const pedidos = await client.db("restaurante").collection("pedidos").find().toArray();
 
-    // Si no hay pedidos, devolver un mensaje
+    
     if (!pedidos || pedidos.length === 0) {
       return res.status(404).json({ success: false, message: "No hay pedidos." });
     }
@@ -312,7 +303,7 @@ app.get("/api/pedidos", async (req, res) => {
     // Devolver los pedidos con los productos asociados
     res.status(200).json({
       success: true,
-      pedidos: pedidos // Devuelves la lista de pedidos con productos
+      pedidos: pedidos 
     });
   } catch (error) {
     console.error("Error al obtener los pedidos:", error);
@@ -323,21 +314,19 @@ app.get("/api/pedidos", async (req, res) => {
 
 app.delete("/api/pedidos/:id", async (req, res) => {
   try {
-    const { id } = req.params; // Obtener el ID del pedido desde los parámetros de la URL
+    const { id } = req.params; 
 
-    // Validar que el ID del pedido sea válido
+    // Validar el id
     if (!id) {
       return res.status(400).json({ success: false, message: "ID de pedido no proporcionado." });
     }
 
-    // Conectar a la base de datos
     const db = client.db("restaurante");
     const pedidosCollection = db.collection("pedidos");
 
-    // Intentar eliminar el pedido con el ID proporcionado
+    // eliminar el pedido con el ID proporcionado
     const result = await pedidosCollection.deleteOne({ _id: new ObjectId(id) });
 
-    // Verificar si el pedido fue encontrado y eliminado
     if (result.deletedCount === 0) {
       return res.status(404).json({ success: false, message: "No se encontró el pedido." });
     }
